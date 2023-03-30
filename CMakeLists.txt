@@ -20,7 +20,7 @@ if (NOT raylib_FOUND) # If there's none, fetch and build raylib
     endif()
 endif()
 
-add_executable(renegade-engine main.cpp)
+add_executable(renegade-engine main.cpp config.hpp src/Messaging.hpp)
 
 target_link_libraries(${PROJECT_NAME} raylib)
 
