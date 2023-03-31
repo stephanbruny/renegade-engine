@@ -21,14 +21,14 @@ constexpr float MAX_ROTATION = 2.0f * M_PI;
 
 vector<int> tilemap = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 0, 0, 0, 1, 1, 0, 0, 0, 1,
-    1, 0, 0, 0, 1, 1, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 1, 1, 1, 1, 0, 1,
-    1, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
@@ -66,7 +66,7 @@ void castRays(Player &player, vector<int> map, int maxDistance = 8, int mapWidth
     int rayX, rayY, offsetX, offsetY, mapX, mapY, mapIndex;
     int distance = 0;
     int rayDistance = 0;
-    float rayAngle = player.rotation - (fov / 2) * ONE_DEG;
+    float rayAngle = player.rotation - ((fov / 2) * ONE_DEG);
     int raysCount = fov;
     for (int i = 0; i < raysCount; i++) {
         float distHorizontal = 100000.0f;
