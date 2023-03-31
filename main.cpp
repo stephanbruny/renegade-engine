@@ -13,38 +13,49 @@ constexpr int MAP_WIDTH = 10;
 constexpr int CELL_SIZE = 64;
 constexpr float PI_DIV2 = M_PI / 2;
 constexpr float PI_3 = 3*PI_DIV2;
+constexpr float PI_2 = 2*M_PI;
 
 constexpr float ONE_DEG = 0.0174533f;
 
 
-constexpr float MAX_ROTATION = 2.0f * M_PI;
+constexpr float MAX_ROTATION = 360.0f;
+
+inline float degreeToRadians(float degree) {
+    return degree * (float)M_PI / 180;
+}
 
 vector<int> tilemap = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 1, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+    1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+    1, 0, 1, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 1, 0, 1,
+    1, 0, 0, 0, 1, 1, 0, 0, 0, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
 struct Player {
-    double rotation;
+    float rotation;
     Vector2 position;
     Vector2 delta;
 
-    void rotate(float amount = 0.1f, float deltaAmount = 5.0f) {
+    Player(float x = 0, float y = 0) {
+        this->rotation = 0.0f;
+        this->position = Vector2 { x, y };
+        this->delta = Vector2 { 0, 0 };
+    }
+
+    void rotate(float amount = 0.1f, float deltaAmount = 1.0f) {
         this->rotation += amount;
 
         if (this->rotation < 0) this->rotation = MAX_ROTATION;
         if (this->rotation > MAX_ROTATION) this->rotation = 0;
 
-        this->delta.x = cos(this->rotation) * deltaAmount;
-        this->delta.y = sin(this->rotation) * deltaAmount;
+        this->delta.x = cos(degreeToRadians(this->rotation)) * deltaAmount;
+        this->delta.y = sin(degreeToRadians(this->rotation)) * deltaAmount;
     }
 
     void moveForward() {
@@ -62,115 +73,64 @@ float getDistance(Vector2 a, Vector2 b, float ang) {
     return sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
 }
 
-void castRays(Player &player, vector<int> map, int maxDistance = 8, int mapWidth = 10, int fov = 60) {
-    int rayX, rayY, offsetX, offsetY, mapX, mapY, mapIndex;
-    int distance = 0;
-    int rayDistance = 0;
-    float rayAngle = player.rotation - ((fov / 2) * ONE_DEG);
-    int raysCount = fov;
-    for (int i = 0; i < raysCount; i++) {
-        float distHorizontal = 100000.0f;
-        Vector2 horizontalPosition = { player.position.x, player.position.y };
-        float aTan = -1 / tan(rayAngle);
-        bool isUpwards = rayAngle > M_PI;
+void castRays(Player &player, vector<int> map, int maxDistance = 1000, int mapWidth = 10, int fov = 60) {
+    int halfScreenWidth = Config::DISPLAY_WIDTH / 2;
+    int halfScreenHeight = Config::DISPLAY_HEIGHT / 2;
+    int halfFov = fov / 2;
+    float incrementAngle = (float)fov / Config::DISPLAY_WIDTH;
+    float rayAngle = (float)player.rotation - (float)halfFov;
+    for(int rayCount = 0; rayCount < Config::DISPLAY_WIDTH; rayCount++) {
+        if (rayAngle < 0) rayAngle = 360.0f + rayAngle;
+        if (rayAngle > 360.0f) rayAngle = rayAngle - 360.0f;
+        float rad = degreeToRadians(rayAngle);
+        Vector2 ray { player.position.x, player.position.y };
+        float rayCos = cos(rad) / CELL_SIZE;
+        float raySin = sin(rad) / CELL_SIZE;
+        int wallDistance = 0;
 
-        if (isUpwards) {
-            rayY = ((((int)player.position.y) >> 6) << 6) - 0.0001;
-            rayX = (((int)player.position.y) - rayY) * aTan + (int)player.position.x;
-            offsetY = -CELL_SIZE;
-        } else { // looking downard
-            rayY = ((((int)player.position.y) >> 6) << 6) + CELL_SIZE;
-            rayX = (((int)player.position.y) - rayY) * aTan + (int)player.position.x;
-            offsetY = CELL_SIZE;
-        }
-        if (rayAngle == 0 || rayAngle == M_PI) {
-            rayX = (int)player.position.x;
-            rayY = (int)player.position.y;
-            distance = maxDistance;
-        }
-        offsetX = -offsetY * aTan;
-        while (distance < maxDistance) {
-            mapX = (int)(rayX) >> 6;
-            mapY = (int)(rayY) >> 6;
-            mapIndex = mapY * mapWidth + mapX;
-            if (mapIndex > 0 && mapIndex < map.size() && map[mapIndex] > 0) {
-                // hit wall
-                horizontalPosition = { (float)rayX, (float)rayY };
-                distHorizontal = getDistance(player.position, horizontalPosition, rayAngle);
+        while (wallDistance < maxDistance) {
+            ray.x += rayCos;
+            ray.y += raySin;
+            int x = (int)ray.x / CELL_SIZE;
+            int y = (int)ray.y / CELL_SIZE;
+            int wallIndex = y * mapWidth + x;
+            if (wallIndex >= 0 && wallIndex < map.size() && map[wallIndex] > 0) {
                 break;
-            } else {
-                rayX += offsetX;
-                rayY += offsetY;
-                distance++;
             }
+            wallDistance++;
         }
 
-        // vertical
+        /*
+        float px = player.position.x - ray.x;
+        float py = player.position.y - ray.y;
+        auto distance = (float)::sqrt(
+                (float)::pow(px, 2) + (float)::pow(py, 2)
+        );*/
 
-        float nTan = -tan(rayAngle);
-        bool isLeft = rayAngle > PI_DIV2 && rayAngle < PI_3;
-        float distVertical = 100000.0f;
-        Vector2 verticalPosition = { player.position.x, player.position.y };
-
-        if (isLeft) {
-            rayX = ((((int)player.position.x) >> 6) << 6) - 0.0001;
-            rayY = (((int)player.position.y) - rayX) * nTan + (int)player.position.y;
-            offsetX = -CELL_SIZE;
-        } else { // looking right
-            rayX = ((((int)player.position.x) >> 6) << 6) + CELL_SIZE;
-            rayY = (((int)player.position.y) - rayX) * nTan + (int)player.position.y;
-            offsetX = CELL_SIZE;
-        }
-        if (rayAngle == 0 || rayAngle == M_PI) {
-            rayX = (int)player.position.x;
-            rayY = (int)player.position.y;
-            distance = maxDistance;
-        }
-        offsetY = -offsetX * nTan;
-        distance = 0;
-        while (distance < maxDistance) {
-            mapX = (int)(rayX) >> 6;
-            mapY = (int)(rayY) >> 6;
-            mapIndex = mapY * mapWidth + mapX;
-            if (mapIndex > 0 && mapIndex < map.size() && map[mapIndex] > 0) {
-                // hit wall
-                verticalPosition = { (float)rayX, (float)rayY };
-                distVertical = getDistance(player.position, verticalPosition, rayAngle);
-                break;
-            } else {
-                rayX += offsetX;
-                rayY += offsetY;
-                distance++;
-            }
-        }
-
-        if (distHorizontal < distVertical) {
-            rayX = horizontalPosition.x;
-            rayY = horizontalPosition.y;
-            rayDistance = distHorizontal;
-        } else {
-            rayX = verticalPosition.x;
-            rayY = verticalPosition.y;
-            rayDistance = distVertical;
-        }
-
-        float lineHeight = (CELL_SIZE * Config::DISPLAY_HEIGHT) / rayDistance;
-        if (lineHeight > Config::DISPLAY_HEIGHT) lineHeight = Config::DISPLAY_HEIGHT;
-        int lineX = i * 8;
-        int lineY = Config::DISPLAY_HEIGHT / 2 - lineHeight / 2;
-        // DrawLine(lineX, lineY - lineHeight, lineX, lineY, WHITE);
-        DrawRectangleLines(lineX, lineY, 8, lineHeight, WHITE);
-
-        rayAngle += ONE_DEG;
+        float distance = getDistance(player.position, ray, rad);
+        distance = distance * (float)cos(degreeToRadians(rayAngle - player.rotation));
+        int wallHeight = (int)::floor((float)halfScreenHeight / distance);
+        if (wallHeight < 0) wallHeight = 0;
+        if (wallHeight > Config::DISPLAY_HEIGHT) wallHeight = Config::DISPLAY_HEIGHT;
+        Color color = (wallDistance > 100) ? GRAY : WHITE;
+        if (distance > 0)
+            DrawLine(
+                rayCount,
+                halfScreenHeight - wallHeight,
+                rayCount,
+                halfScreenHeight + wallHeight,
+                color
+            );
+        rayAngle += incrementAngle;
     }
 }
 
 void update(double dt, Player& player) {
     if (IsKeyDown(KEY_LEFT)) {
-        player.rotate(-0.1f);
+        player.rotate(-1.0f);
     }
     if (IsKeyDown(KEY_RIGHT)) {
-        player.rotate(0.1f);
+        player.rotate(1.0f);
     }
     if (IsKeyDown(KEY_UP)) {
         player.moveForward();
@@ -181,6 +141,7 @@ void update(double dt, Player& player) {
 }
 
 void render(Player &player) {
+    ClearBackground(BLACK);
     castRays(player, tilemap);
 }
 
@@ -193,7 +154,8 @@ int main() {
     double currentTime = 0.0;
 
     Player player;
-    player.position = { 5 * 64, 5 * 64 };
+    player.position = { 64, 64 };
+    player.rotation = 180;
 
     RenderTexture2D canvas = LoadRenderTexture(Config::DISPLAY_WIDTH, Config::DISPLAY_HEIGHT);
     Rectangle canvasSource = { 0, 0, Config::DISPLAY_WIDTH, Config::DISPLAY_HEIGHT };
@@ -206,7 +168,6 @@ int main() {
         currentTime = time;
 
         BeginTextureMode(canvas);
-            ClearBackground(BLACK);
             render(player);
         EndTextureMode();
 
