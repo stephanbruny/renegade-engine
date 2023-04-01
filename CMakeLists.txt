@@ -32,5 +32,5 @@ if (APPLE)
     target_link_libraries(${PROJECT_NAME} "-framework OpenGL")
 endif()
 
-# set(CMAKE_CXX_FLAGS_DEBUG "-O2")
+set(CMAKE_CXX_FLAGS_DEBUG "-O2")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")

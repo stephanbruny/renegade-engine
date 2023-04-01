@@ -15,6 +15,7 @@
 struct Sprite {
     Vector2 position { 0, 0 };
     Texture2D texture;
+    float distance { 0.0f };
 
     Sprite(Vector2 pos, Texture2D &tex) {
         position = pos;
@@ -165,6 +166,14 @@ public:
 
     void renderRaycaster() {
         int mapWidth = this->map->getWidth();
+        for (auto &sprite : sprites) {
+            sprite.distance =
+                    ((player->position.x - sprite.position.x) * (player->position.x - sprite.position.x)
+                    + (player->position.y - sprite.position.y) * (player->position.y - sprite.position.y));
+        }
+        sort(sprites.begin(), sprites.end(), [&](auto a, auto b){
+            return a.distance > b.distance;
+        });
         for (int x = 0; x < Config::DISPLAY_WIDTH; x++) {
             double cameraX = 2 * x / double(Config::DISPLAY_WIDTH) - 1; //x-coordinate in camera space
             double rayDirX = this->player->direction.x + this->player->plane.x * cameraX;
