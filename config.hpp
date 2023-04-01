@@ -11,6 +11,7 @@ using namespace std;
 namespace Config {
     constexpr int DISPLAY_WIDTH = 320;
     constexpr int DISPLAY_HEIGHT = 240;
+    constexpr  int TEXTURE_SIZE = 32;
     const string WINDOW_TITLE = string("Renegade Engine");
 }
 

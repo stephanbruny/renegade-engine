@@ -10,7 +10,7 @@ constexpr int WINDOW_WIDTH = 1280;
 constexpr int WINDOW_HEIGHT = 800;
 
 constexpr int MAP_WIDTH = 10;
-constexpr int CELL_SIZE = 64;
+constexpr int CELL_SIZE = 32;
 constexpr float PI_DIV2 = M_PI / 2;
 constexpr float PI_3 = 3*PI_DIV2;
 constexpr float PI_2 = 2*M_PI;
@@ -108,11 +108,16 @@ void castRays(Player &player, vector<int> map, int maxDistance = 1000, int mapWi
         );*/
 
         float distance = getDistance(player.position, ray, rad);
+        unsigned char depth = 255;
+        depth = (1 / distance) * 255;
+        if (depth < 0) depth = 0;
+        if (depth > 255) depth = 255;
         distance = distance * (float)cos(degreeToRadians(rayAngle - player.rotation));
+
         int wallHeight = (int)::floor((float)halfScreenHeight / distance);
         if (wallHeight < 0) wallHeight = 0;
         if (wallHeight > Config::DISPLAY_HEIGHT) wallHeight = Config::DISPLAY_HEIGHT;
-        Color color = (wallDistance > 100) ? GRAY : WHITE;
+        Color color = { depth, depth, depth, 255 };
         if (distance > 0)
             DrawLine(
                 rayCount,
@@ -145,6 +150,24 @@ void render(Player &player) {
     castRays(player, tilemap);
 }
 
+void renderMinimap(Player &player, vector<int> &tilemap, int mapWidth, Vector2 offset = { WINDOW_WIDTH / 2, 0 }) {
+    int tileSize = CELL_SIZE;
+    Color tileColor = { 0, 255, 0, 128 };
+    Color playerColor = { 255, 255, 0, 128 };
+
+    for (int i = 0; i < tilemap.size(); i++) {
+        int mx = i % mapWidth;
+        int my = i / mapWidth;
+        int tx = mx * tileSize + offset.x;
+        int ty = my * tileSize + offset.y;
+        if (tilemap[i] > 0) {
+            DrawRectangle(tx, ty, tileSize, tileSize, tileColor);
+        }
+    }
+
+    DrawCircle(player.position.x + offset.x, player.position.y + offset.y, 8, playerColor);
+}
+
 int main() {
     std::cout << "Hello, World!" << std::endl;
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, Config::WINDOW_TITLE.c_str());
@@ -154,7 +177,7 @@ int main() {
     double currentTime = 0.0;
 
     Player player;
-    player.position = { 64, 64 };
+    player.position = { 5 * CELL_SIZE, 5 * CELL_SIZE };
     player.rotation = 180;
 
     RenderTexture2D canvas = LoadRenderTexture(Config::DISPLAY_WIDTH, Config::DISPLAY_HEIGHT);
@@ -174,6 +197,7 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
             DrawTexturePro(canvas.texture, canvasSource, canvasDest, Vector2 { 0, 0 }, 0, WHITE );
+            renderMinimap(player, tilemap, 10);
         EndDrawing();
     }
 
