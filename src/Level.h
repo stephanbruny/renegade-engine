@@ -11,6 +11,11 @@
 
 using namespace std;
 
+struct GameObject {
+    string name;
+    Vector2 position;
+};
+
 class Level {
 private:
     std::unique_ptr<tson::Map> map;
@@ -36,6 +41,22 @@ public:
         }
 
         return (const vector<int> &) layerData;
+    }
+
+    vector<GameObject> getObjects() {
+        auto layer = map->getLayer("objects");
+        if (layer == nullptr) return {};
+        auto objects = layer->getObjects();
+        vector<GameObject> result;
+        result.reserve(objects.size());
+        for (auto &obj : objects) {
+            auto pos = obj.getPosition();
+            result.push_back({
+                obj.getName(),
+                Vector2 { (float)pos.x, (float)pos.y }
+            });
+        }
+        return result;
     }
 };
 

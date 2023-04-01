@@ -6,11 +6,13 @@
 #define RENEGADE_ENGINE_RAYCASTER_H
 
 #include <raylib.h>
+#include <map>
 #include <cmath>
 #include <utility>
 #include "../config.hpp"
 #include "Player.h"
 #include "Map.h"
+#include "Level.h"
 
 struct Sprite {
     Vector2 position { 0, 0 };
@@ -34,6 +36,8 @@ private:
     Map* map;
     shared_ptr<Texture2D> textures;
 
+    std::map<string, Texture2D> textureMap;
+
     vector<Sprite> sprites;
 
     vector<double> zBuffer;
@@ -51,14 +55,17 @@ public:
 
         this->zBuffer = vector<double>(Config::DISPLAY_WIDTH);
 
-        // TODO: Remove
-        auto tex = LoadTexture("assets/tree-1.png");
-        sprites = {
-                Sprite({ 20.0f, 15.0f }, tex),
-                Sprite({ 17.0f, 15.0f }, tex),
-                Sprite({ 10.0f, 10.0f }, tex),
-                Sprite({ 5.0f, 5.0f }, tex)
-        };
+        auto tex = LoadTexture("assets/sprites/spear-head.png");
+        auto tex2 = LoadTexture("assets/sprites/statue-1.png");
+        auto tex3 = LoadTexture("assets/sprites/candles.png");
+        auto tex4 = LoadTexture("assets/sprites/cage.png");
+        auto tex5 = LoadTexture("assets/sprites/skull-1.png");
+
+        textureMap.insert(pair<string, Texture2D>("spearhead", tex));
+        textureMap.insert(pair<string, Texture2D>("statue", tex2));
+        textureMap.insert(pair<string, Texture2D>("candles", tex3));
+        textureMap.insert(pair<string, Texture2D>("cage", tex4));
+        textureMap.insert(pair<string, Texture2D>("skull", tex5));
     }
 
     void renderFloor() {
@@ -265,7 +272,7 @@ public:
             double wallLightDist = perpWallDist;
             if (wallLightDist < 1) wallLightDist = 1;
             unsigned char wallDistDepth = 1 / wallLightDist * 255;
-            unsigned char wallDepth = this->light[mapIndex];
+            unsigned char wallDepth = wallDistDepth;//this->light[mapIndex];
             if (wallDistDepth > wallDepth) wallDepth = wallDistDepth; // (1 / wallLightDist) * ((side == 1) ? 128 : 255);
             if (side == 1) wallDepth = wallDepth / 2;
             int drawStart = -lineHeight / 2 + Config::DISPLAY_HEIGHT / 2;
@@ -289,6 +296,17 @@ public:
                     0.0,
                     color
             );
+        }
+    }
+
+    void addObject(GameObject &obj) {
+        auto tex = textureMap.find(obj.name);
+        if (tex != textureMap.end()) {
+            Vector2 pos = {
+                    obj.position.x / Config::TEXTURE_SIZE,
+                    obj.position.y / Config::TEXTURE_SIZE
+            };
+            this->sprites.emplace_back(pos, tex->second);
         }
     }
 

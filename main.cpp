@@ -82,16 +82,18 @@ int main() {
 
     std::cout << "Hello, World!" << std::endl;
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, Config::WINDOW_TITLE.c_str());
+    InitAudioDevice();
 
     SetTargetFPS(60);
 
-    auto level = Level("assets/maps/testmap/testmap-1.json");
+    auto level = Level("assets/maps/dungeon/dungeon-1.json");
     auto level_size = level.getSize();
 
     auto map = make_unique<Map>(level_size.x, level_size.y);
     auto wallsLayerData = level.getLayerData("walls");
     auto floorLayerData = level.getLayerData("floor");
     auto ceilingLayerData = level.getLayerData("ceiling");
+    auto gameObjects = level.getObjects();
     map->setWalls(wallsLayerData);
     map->setFloor(floorLayerData);
     map->setCeiling(ceilingLayerData);
@@ -99,7 +101,7 @@ int main() {
     // map->setLightmap(TestData::TILEMAP_LIGHT);
 
     auto player = make_unique<Player>(map.get());
-    player->position = { 17, 15 };
+    player->position = { 20, 20 };
     player->rotation = 180;
 
     RenderTexture2D canvas = LoadRenderTexture(Config::DISPLAY_WIDTH, Config::DISPLAY_HEIGHT);
@@ -110,6 +112,9 @@ int main() {
     Texture2D background = LoadTexture("assets/backdrop.png");
 
     Raycaster raycaster(map.get(), player.get(), make_shared<Texture2D>(textures));
+    for (auto &obj : gameObjects) {
+        raycaster.addObject(obj);
+    }
 
     auto onUpdate = [&](){
         while (isGameRunning) {
@@ -130,8 +135,12 @@ int main() {
     std::thread updateThread(onUpdate);
     updateThread.detach();
 
+    auto music = LoadMusicStream("assets/music/MyVeryOwnDeadShip.ogg");
+    PlayMusicStream(music);
+
     while (!WindowShouldClose())
     {
+        UpdateMusicStream(music);
         BeginTextureMode(canvas);
             render(raycaster, background);
         EndTextureMode();
@@ -153,6 +162,7 @@ int main() {
     UnloadTexture(textures);
     UnloadTexture(background);
 
+    CloseAudioDevice();
     CloseWindow();
 
     return 0;
