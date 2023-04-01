@@ -38,7 +38,14 @@ void update(double dt, Player* player) {
 }
 
 void renderBackground(Texture2D& background) {
-    DrawTexture(background, 0, 0, WHITE);
+    DrawTexturePro(
+            background,
+            Rectangle { 0, 0, (float)background.width, (float)background.height },
+            Rectangle { 0, 0, Config::DISPLAY_WIDTH, Config::DISPLAY_HEIGHT },
+            Vector2 { 0, 0, },
+            0,
+            WHITE
+    );
 }
 
 void render(Raycaster& raycaster, Texture2D& background) {
@@ -88,6 +95,7 @@ int main() {
     map->setWalls(wallsLayerData);
     map->setFloor(floorLayerData);
     map->setCeiling(ceilingLayerData);
+    map->autoLightMap();
     // map->setLightmap(TestData::TILEMAP_LIGHT);
 
     auto player = make_unique<Player>(map.get());

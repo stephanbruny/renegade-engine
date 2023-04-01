@@ -85,6 +85,14 @@ public:
         }
     }
 
+    void autoLightMap() {
+        for (int i = 0; i < lightMap.size(); i++) {
+            if (ceilingData[i] > 0 && wallsData[i] <= 0) {
+                lightMap[i] = lightMap[i] / 3;
+            }
+        }
+    }
+
     void setLightmap(vector<int> &data) {
         if (data.size() != this->lightMap.size()) {
             throw runtime_error("Invalid walls data");
