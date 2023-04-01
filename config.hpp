@@ -13,6 +13,7 @@ namespace Config {
     constexpr int DISPLAY_HEIGHT = 240;
     constexpr  int TEXTURE_SIZE = 32;
     const string WINDOW_TITLE = string("Renegade Engine");
+    constexpr double UPDATE_DELAY = 0.016;
 }
 
 #endif //RENEGADE_ENGINE_CONFIG_HPP
