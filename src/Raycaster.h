@@ -12,15 +12,30 @@
 #include "Player.h"
 #include "Map.h"
 
+struct Sprite {
+    Vector2 position { 0, 0 };
+    Texture2D texture;
+
+    Sprite(Vector2 pos, Texture2D &tex) {
+        position = pos;
+        texture = tex;
+    }
+};
+
 class Raycaster {
 private:
     vector<int> floor;
     vector<int> walls;
     vector<int> ceiling;
+    vector<int> light;
 
     Player* player;
     Map* map;
     shared_ptr<Texture2D> textures;
+
+    vector<Sprite> sprites;
+
+    vector<double> zBuffer;
 
 public:
 
@@ -31,6 +46,18 @@ public:
         this->floor    = *(map->getFloor());
         this->walls    = *(map->getWalls());
         this->ceiling  = *(map->getCeiling());
+        this->light    = *(map->getLightmap());
+
+        this->zBuffer = vector<double>(Config::DISPLAY_WIDTH);
+
+        // TODO: Remove
+        auto tex = LoadTexture("assets/tree-1.png");
+        sprites = {
+                Sprite({ 20.0f, 15.0f }, tex),
+                Sprite({ 17.0f, 15.0f }, tex),
+                Sprite({ 10.0f, 10.0f }, tex),
+                Sprite({ 5.0f, 5.0f }, tex)
+        };
     }
 
     void renderFloor() {
@@ -94,7 +121,7 @@ public:
                         static_cast<float>((ceilingTextureId / atlasWidth) * Config::TEXTURE_SIZE + ty)
                 };
 
-                unsigned char depth = y - Config::DISPLAY_HEIGHT / 2;
+                unsigned char depth = this->light[floorIndex]; // y - Config::DISPLAY_HEIGHT / 2;
                 Color color { depth, depth, depth, 255 };
 
                 DrawTexturePro(
@@ -181,7 +208,8 @@ public:
 
             int rayDepth = 0;
             int wallTextureId = -1;
-            while (rayDepth < 10000)
+            int mapIndex = 0;
+            while (rayDepth < 100)
             {
                 //jump to next map square, either in x-direction, or in y-direction
                 if (sideDistX < sideDistY) {
@@ -193,7 +221,7 @@ public:
                     mapY += stepY;
                     side = 1;
                 }
-                int mapIndex = mapY * mapWidth + mapX;
+                mapIndex = mapY * mapWidth + mapX;
                 //Check if ray has hit a wall
                 if (mapIndex >= 0 && mapIndex < walls.size() && walls[mapIndex] > 0) {
                     wallTextureId = walls[mapIndex];
@@ -221,10 +249,16 @@ public:
             //Calculate height of line to draw on screen
             int lineHeight = (int)(Config::DISPLAY_HEIGHT / perpWallDist);
 
+            // set ZBuffer
+            zBuffer[x] = perpWallDist;
+
             //calculate lowest and highest pixel to fill in current stripe
             double wallLightDist = perpWallDist;
             if (wallLightDist < 1) wallLightDist = 1;
-            unsigned char wallDepth = (1 / wallLightDist) * ((side == 1) ? 128 : 255);
+            unsigned char wallDistDepth = 1 / wallLightDist * 255;
+            unsigned char wallDepth = this->light[mapIndex];
+            if (wallDistDepth > wallDepth) wallDepth = wallDistDepth; // (1 / wallLightDist) * ((side == 1) ? 128 : 255);
+            if (side == 1) wallDepth = wallDepth / 2;
             int drawStart = -lineHeight / 2 + Config::DISPLAY_HEIGHT / 2;
             // if(drawStart < 0)drawStart = 0;
             int drawEnd = lineHeight / 2 + Config::DISPLAY_HEIGHT / 2;
@@ -249,7 +283,75 @@ public:
         }
     }
 
+    void drawSprites() {
+        for(int i = 0; i < sprites.size(); i++) {
+            //translate sprite position to relative to camera
+            double spriteX = sprites[i].position.x - player->position.x;
+            double spriteY = sprites[i].position.y - player->position.y;
 
+            //transform sprite with the inverse camera matrix
+            // [ player->plane.x   player->direction.x ] -1                                       [ player->direction.y      -player->direction.x ]
+            // [               ]       =  1/(player->plane.x*player->direction.y-player->direction.x*player->plane.y) *   [                 ]
+            // [ player->plane.y   player->direction.y ]                                          [ -player->plane.y  player->plane.x ]
+
+            double invDet = 1.0 / (player->plane.x * player->direction.y -
+                                   player->direction.x * player->plane.y); //required for correct matrix multiplication
+
+            double transformX = invDet * (player->direction.y * spriteX - player->direction.x * spriteY);
+            double transformY = invDet * (-player->plane.y * spriteX + player->plane.x *
+                                                                       spriteY); //this is actually the depth inside the screen, that what Z is in 3D
+
+            int spriteScreenX = int((Config::DISPLAY_WIDTH / 2) * (1 + transformX / transformY));
+
+            //calculate height of the sprite on screen
+            int spriteHeight = abs(int(Config::DISPLAY_HEIGHT /
+                                       (transformY))); //using 'transformY' instead of the real distance prevents fisheye
+            //calculate lowest and highest pixel to fill in current stripe
+            int drawStartY = -spriteHeight / 2 + Config::DISPLAY_HEIGHT / 2;
+            if (drawStartY < 0) drawStartY = 0;
+            int drawEndY = spriteHeight / 2 + Config::DISPLAY_HEIGHT / 2;
+            if (drawEndY >= Config::DISPLAY_HEIGHT) drawEndY = Config::DISPLAY_HEIGHT - 1;
+
+            //calculate width of the sprite
+            int spriteWidth = abs(int(Config::DISPLAY_HEIGHT / (transformY)));
+            int drawStartX = -spriteWidth / 2 + spriteScreenX;
+            if (drawStartX < 0) drawStartX = 0;
+            int drawEndX = spriteWidth / 2 + spriteScreenX;
+            if (drawEndX >= Config::DISPLAY_WIDTH) drawEndX = Config::DISPLAY_WIDTH - 1;
+
+            //loop through every vertical stripe of the sprite on screen
+            for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
+                int texX = int(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * sprites[i].texture.width /
+                               spriteWidth) / 256;
+                //the conditions in the if are:
+                //1) it's in front of camera plane so you don't see things behind you
+                //2) it's on the screen (left)
+                //3) it's on the screen (right)
+                //4) ZBuffer, with perpendicular distance
+                if (transformY > 0 && stripe > 0 && stripe < Config::DISPLAY_WIDTH && transformY < zBuffer[stripe])
+                    for (int y = drawStartY; y < drawEndY; y++) //for every pixel of the current stripe
+                    {
+                        int d = (y) * 256 - Config::DISPLAY_HEIGHT * 128 +
+                                spriteHeight * 128; //256 and 128 factors to avoid floats
+                        int texY = ((d * sprites[i].texture.height) / spriteHeight) / 256;
+
+                        DrawTexturePro(
+                                sprites[i].texture,
+                                Rectangle{(float) texX, (float) texY, 1, 1},
+                                Rectangle{(float)stripe, (float)y, 1, 1},
+                                Vector2{0, 0},
+                                0,
+                                WHITE
+                        );
+
+                        // DrawTexture(sprites[i].texture, stripe, y, WHITE);
+
+                        // Uint32 color = texture[sprite[spriteOrder[i]].texture][texWidth * texY + texX]; //get current color from the texture
+                        // if((color & 0x00FFFFFF) != 0) buffer[y][stripe] = color; //paint pixel if it isn't black, black is the invisible color
+                    }
+            }
+        }
+    }
 };
 
 #endif //RENEGADE_ENGINE_RAYCASTER_H

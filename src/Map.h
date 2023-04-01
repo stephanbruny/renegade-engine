@@ -14,6 +14,7 @@ private:
     vector<int> floorData;
     vector<int> ceilingData;
     vector<int> wallsData;
+    vector<int> lightMap;
     int width;
     int height;
 public:
@@ -26,6 +27,8 @@ public:
         this->wallsData = vector<int>(map_size);
         this->floorData = vector<int>(map_size);
         this->ceilingData = vector<int>(map_size);
+        this->lightMap = vector<int>(map_size);
+
         this->wallsData.reserve(width * height);
         std::fill(this->wallsData.begin(), this->wallsData.end(), 0);
 
@@ -34,10 +37,17 @@ public:
 
         this->ceilingData.reserve(width * height);
         std::fill(this->ceilingData.begin(), this->ceilingData.end(), 0);
+
+        this->lightMap.reserve(width * height);
+        std::fill(this->lightMap.begin(), this->lightMap.end(), 128);
     }
 
     shared_ptr<vector<int>> getWalls() {
         return make_shared<vector<int>>(this->wallsData);
+    }
+
+    shared_ptr<vector<int>> getLightmap() {
+        return make_shared<vector<int>>(this->lightMap);
     }
 
     shared_ptr<vector<int>> getFloor() {
@@ -72,6 +82,15 @@ public:
         }
         for (int i = 0; i < data.size(); i++) {
             this->ceilingData[i] = data[i];
+        }
+    }
+
+    void setLightmap(vector<int> &data) {
+        if (data.size() != this->lightMap.size()) {
+            throw runtime_error("Invalid walls data");
+        }
+        for (int i = 0; i < data.size(); i++) {
+            this->lightMap[i] = data[i];
         }
     }
 
