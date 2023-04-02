@@ -31,7 +31,7 @@ private:
     vector<int> walls;
     vector<int> ceiling;
     vector<int> light;
-    vector<Color> lightmap;
+    vector<float> lightmap;
 
     Player* player;
     Map* map;
@@ -54,8 +54,8 @@ public:
         this->ceiling  = *(map->getCeiling());
         this->light    = *(map->getLightmap());
 
-        this->lightmap = vector<Color>(this->walls.size());
-        std::fill(this->lightmap.begin(), this->lightmap.end(), Color { 128, 128, 128, 255 });
+        this->lightmap = vector<float>(this->walls.size());
+        std::fill(this->lightmap.begin(), this->lightmap.end(), 0.0f);
 
         this->zBuffer = vector<double>(Config::DISPLAY_WIDTH);
 
@@ -137,6 +137,7 @@ public:
 
                 unsigned char depth = this->light[floorIndex]; // y - Config::DISPLAY_HEIGHT / 2;
                 Color color { depth, depth, depth, 255 };
+                color = ColorBrightness(color, this->lightmap[floorIndex]);
 
                 DrawTexturePro(
                         *textures,
@@ -187,6 +188,7 @@ public:
         sort(sprites.begin(), sprites.end(), [&](auto a, auto b){
             return a.distance > b.distance;
         });
+        float brightness = 0.0f;
         for (int x = 0; x < Config::DISPLAY_WIDTH; x++) {
             double cameraX = 2 * x / double(Config::DISPLAY_WIDTH) - 1; //x-coordinate in camera space
             double rayDirX = this->player->direction.x + this->player->plane.x * cameraX;
@@ -245,10 +247,15 @@ public:
                 }
                 mapIndex = mapY * mapWidth + mapX;
                 //Check if ray has hit a wall
-                if (mapIndex >= 0 && mapIndex < walls.size() && walls[mapIndex] > 0) {
-                    wallTextureId = walls[mapIndex];
-                    break;
+                // check hit light
+                if (mapIndex >= 0 && mapIndex < walls.size()) {
+                    if (lightmap[mapIndex] > brightness) brightness = lightmap[mapIndex];
+                    if (walls[mapIndex] > 0) {
+                        wallTextureId = walls[mapIndex];
+                        break;
+                    }
                 }
+                brightness -= 0.1; // TODO: Calc lighting correctly
                 rayDepth++;
             }
 
@@ -285,7 +292,7 @@ public:
             // if(drawStart < 0)drawStart = 0;
             int drawEnd = lineHeight / 2 + Config::DISPLAY_HEIGHT / 2;
             // if(drawEnd >= Config::DISPLAY_HEIGHT)drawEnd = Config::DISPLAY_HEIGHT - 1;
-            Color color = ColorTint(this->lightmap[mapIndex], { wallDepth, wallDepth, wallDepth, 255 });
+            Color color = ColorBrightness({ wallDepth, wallDepth, wallDepth, 255 }, this->lightmap[mapIndex] + brightness);
             // if (side == 1) color = GRAY;
 
             // DrawLine(x, drawStart, x, drawEnd, color);
@@ -307,12 +314,16 @@ public:
 
     void addObject(GameObject &obj) {
         auto tex = textureMap.find(obj.name);
+        Vector2 pos = {
+                obj.position.x / Config::TEXTURE_SIZE,
+                obj.position.y / Config::TEXTURE_SIZE
+        };
         if (tex != textureMap.end()) {
-            Vector2 pos = {
-                    obj.position.x / Config::TEXTURE_SIZE,
-                    obj.position.y / Config::TEXTURE_SIZE
-            };
             this->sprites.emplace_back(pos, tex->second);
+        }
+        if (obj.type == "light") {
+            int index = (int)pos.y * map->getWidth() + (int)pos.x;
+            this->lightmap[index] = 1.0f;
         }
     }
 
@@ -372,6 +383,8 @@ public:
                         if (depth > 255) depth = 255;
 
                         Color color { (unsigned char)depth, (unsigned char)depth, (unsigned char)depth, 255 };
+                        int mapIndex = (int)sprites[i].position.y * this->map->getWidth() + (int)sprites[i].position.x;
+                        color = ColorBrightness(color, this->lightmap[mapIndex]);
 
                         DrawTexturePro(
                                 sprites[i].texture,

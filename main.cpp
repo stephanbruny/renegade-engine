@@ -145,6 +145,7 @@ int main() {
     std::thread updateThread(onUpdate);
     updateThread.detach();
 
+    music.looping = true;
     PlayMusicStream(music);
 
     while (!WindowShouldClose())

@@ -13,6 +13,7 @@ using namespace std;
 
 struct GameObject {
     string name;
+    string type;
     Vector2 position;
 };
 
@@ -53,6 +54,7 @@ public:
             auto pos = obj.getPosition();
             result.push_back({
                 obj.getName(),
+                obj.getType(),
                 Vector2 { (float)pos.x, (float)pos.y }
             });
         }
