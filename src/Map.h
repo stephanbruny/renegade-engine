@@ -18,7 +18,7 @@ private:
     int width;
     int height;
 public:
-    Map(int width, int height) {
+    Map(int width, int height, unsigned char globalLight = 48) {
         this->width = width;
         this->height = height;
 
@@ -39,7 +39,7 @@ public:
         std::fill(this->ceilingData.begin(), this->ceilingData.end(), 0);
 
         this->lightMap.reserve(width * height);
-        std::fill(this->lightMap.begin(), this->lightMap.end(), 128);
+        std::fill(this->lightMap.begin(), this->lightMap.end(), globalLight);
     }
 
     shared_ptr<vector<int>> getWalls() {

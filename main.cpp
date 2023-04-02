@@ -21,19 +21,23 @@ constexpr int MAP_WIDTH = 30;
 constexpr int CELL_SIZE = 8;
 constexpr float PI_DIV2 = M_PI / 2;
 
+Texture2D playerHandTexture;
 
 void update(double dt, Player* player) {
+    bool isRunning = IsKeyDown(KEY_LEFT_SHIFT);
+    double playerSpeed = isRunning ? Config::PLAYER_RUN_SPEED : Config::PLAYER_MOVEMENT_SPEED;
+
     if (IsKeyDown(KEY_LEFT)) {
-        player->rotate(-0.040f);
+        player->rotate(-dt * Config::PLAYER_ROTATION_SPEED);
     }
     if (IsKeyDown(KEY_RIGHT)) {
-        player->rotate(0.040f);
+        player->rotate(dt * Config::PLAYER_ROTATION_SPEED);
     }
     if (IsKeyDown(KEY_UP)) {
-        player->moveForward(0.05);
+        player->moveForward(dt * playerSpeed);
     }
     if (IsKeyDown(KEY_DOWN)) {
-        player->moveBackward(0.05);
+        player->moveBackward(dt * playerSpeed);
     }
 }
 
@@ -54,6 +58,8 @@ void render(Raycaster& raycaster, Texture2D& background) {
     raycaster.renderFloor();
     raycaster.renderRaycaster();
     raycaster.drawSprites();
+
+    DrawTexture(playerHandTexture, Config::DISPLAY_WIDTH / 2 + playerHandTexture.width / 2, Config::DISPLAY_HEIGHT - playerHandTexture.height, WHITE);
 }
 
 void renderMinimap(Player &player, vector<int> &tilemap, int mapWidth, Vector2 offset = { WINDOW_WIDTH / 2, 0 }) {
@@ -86,6 +92,8 @@ int main() {
 
     SetTargetFPS(60);
 
+    playerHandTexture = LoadTexture("assets/hand.png");
+
     auto level = Level("assets/maps/dungeon/dungeon-1.json");
     auto level_size = level.getSize();
 
@@ -116,6 +124,8 @@ int main() {
         raycaster.addObject(obj);
     }
 
+    auto music = LoadMusicStream("assets/music/MyVeryOwnDeadShip.ogg");
+
     auto onUpdate = [&](){
         while (isGameRunning) {
             double now = GetTime();
@@ -135,7 +145,6 @@ int main() {
     std::thread updateThread(onUpdate);
     updateThread.detach();
 
-    auto music = LoadMusicStream("assets/music/MyVeryOwnDeadShip.ogg");
     PlayMusicStream(music);
 
     while (!WindowShouldClose())

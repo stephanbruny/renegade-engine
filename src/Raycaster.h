@@ -31,6 +31,7 @@ private:
     vector<int> walls;
     vector<int> ceiling;
     vector<int> light;
+    vector<Color> lightmap;
 
     Player* player;
     Map* map;
@@ -53,6 +54,9 @@ public:
         this->ceiling  = *(map->getCeiling());
         this->light    = *(map->getLightmap());
 
+        this->lightmap = vector<Color>(this->walls.size());
+        std::fill(this->lightmap.begin(), this->lightmap.end(), Color { 128, 128, 128, 255 });
+
         this->zBuffer = vector<double>(Config::DISPLAY_WIDTH);
 
         auto tex = LoadTexture("assets/sprites/spear-head.png");
@@ -60,12 +64,14 @@ public:
         auto tex3 = LoadTexture("assets/sprites/candles.png");
         auto tex4 = LoadTexture("assets/sprites/cage.png");
         auto tex5 = LoadTexture("assets/sprites/skull-1.png");
+        auto tex6 = LoadTexture("assets/sprites/hook.png");
 
         textureMap.insert(pair<string, Texture2D>("spearhead", tex));
         textureMap.insert(pair<string, Texture2D>("statue", tex2));
         textureMap.insert(pair<string, Texture2D>("candles", tex3));
         textureMap.insert(pair<string, Texture2D>("cage", tex4));
         textureMap.insert(pair<string, Texture2D>("skull", tex5));
+        textureMap.insert(pair<string, Texture2D>("hook", tex6));
     }
 
     void renderFloor() {
@@ -272,14 +278,14 @@ public:
             double wallLightDist = perpWallDist;
             if (wallLightDist < 1) wallLightDist = 1;
             unsigned char wallDistDepth = 1 / wallLightDist * 255;
-            unsigned char wallDepth = wallDistDepth;//this->light[mapIndex];
+            unsigned char wallDepth = this->light[mapIndex];
             if (wallDistDepth > wallDepth) wallDepth = wallDistDepth; // (1 / wallLightDist) * ((side == 1) ? 128 : 255);
             if (side == 1) wallDepth = wallDepth / 2;
             int drawStart = -lineHeight / 2 + Config::DISPLAY_HEIGHT / 2;
             // if(drawStart < 0)drawStart = 0;
             int drawEnd = lineHeight / 2 + Config::DISPLAY_HEIGHT / 2;
             // if(drawEnd >= Config::DISPLAY_HEIGHT)drawEnd = Config::DISPLAY_HEIGHT - 1;
-            Color color = { wallDepth, wallDepth, wallDepth, 255 };
+            Color color = ColorTint(this->lightmap[mapIndex], { wallDepth, wallDepth, wallDepth, 255 });
             // if (side == 1) color = GRAY;
 
             // DrawLine(x, drawStart, x, drawEnd, color);
@@ -362,13 +368,18 @@ public:
                                 spriteHeight * 128; //256 and 128 factors to avoid floats
                         int texY = ((d * sprites[i].texture.height) / spriteHeight) / 256;
 
+                        int depth = (1 / sprites[i].distance) * 255;
+                        if (depth > 255) depth = 255;
+
+                        Color color { (unsigned char)depth, (unsigned char)depth, (unsigned char)depth, 255 };
+
                         DrawTexturePro(
                                 sprites[i].texture,
                                 Rectangle{(float) texX, (float) texY, 1, 1},
                                 Rectangle{(float)stripe, (float)y, 1, 1},
                                 Vector2{0, 0},
                                 0,
-                                WHITE
+                                color
                         );
 
                         // DrawTexture(sprites[i].texture, stripe, y, WHITE);

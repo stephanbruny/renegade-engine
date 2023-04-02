@@ -14,6 +14,10 @@ namespace Config {
     constexpr  int TEXTURE_SIZE = 32;
     const string WINDOW_TITLE = string("Renegade Engine");
     constexpr double UPDATE_DELAY = 0.016;
+
+    constexpr double PLAYER_ROTATION_SPEED = 2.0;
+    constexpr double PLAYER_MOVEMENT_SPEED = 2.0;
+    constexpr double PLAYER_RUN_SPEED = 5.66;
 }
 
 #endif //RENEGADE_ENGINE_CONFIG_HPP

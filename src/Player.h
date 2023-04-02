@@ -22,6 +22,8 @@ public:
     Vector2 plane;
     shared_ptr<vector<int>> map;
 
+    bool isMoving { false };
+
     int currentMapWidth, currentMapHeight;
 
     Player(Map* map) {
@@ -46,6 +48,14 @@ public:
         auto oldPlaneX = this->plane.x;
         this->plane.x = this->plane.x * cos(-amount) - this->plane.y * sin(-amount);
         this->plane.y = oldPlaneX * sin(-amount) + this->plane.y * cos(-amount);
+    }
+
+    void setIsMoving(bool value) {
+        this->isMoving = value;
+    }
+
+    bool getIsMoving() {
+        return this->isMoving;
     }
 
     void moveForward(float amount = 0.1f, float lookAhead = 0.6f) {
