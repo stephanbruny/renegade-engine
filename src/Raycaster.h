@@ -65,6 +65,7 @@ public:
         auto tex4 = LoadTexture("assets/sprites/cage.png");
         auto tex5 = LoadTexture("assets/sprites/skull-1.png");
         auto tex6 = LoadTexture("assets/sprites/hook.png");
+        auto tex7 = LoadTexture("assets/sprites/barell.png");
 
         textureMap.insert(pair<string, Texture2D>("spearhead", tex));
         textureMap.insert(pair<string, Texture2D>("statue", tex2));
@@ -72,6 +73,23 @@ public:
         textureMap.insert(pair<string, Texture2D>("cage", tex4));
         textureMap.insert(pair<string, Texture2D>("skull", tex5));
         textureMap.insert(pair<string, Texture2D>("hook", tex6));
+        textureMap.insert(pair<string, Texture2D>("barell", tex7));
+
+        this->assignLightMap();
+    }
+
+    void assignLightMap() {
+        auto current_lightmap = *(this->map->getLightmap());
+        int i = 0;
+        for (auto &l : current_lightmap) {
+            if (l == 0) {
+                this->lightmap[i] = 0;
+            } else {
+                float lum = 1.0f / (128.0f / ((float)l));
+                this->lightmap[i] = lum;
+            }
+            i++;
+        }
     }
 
     void renderFloor() {
@@ -137,7 +155,7 @@ public:
 
                 unsigned char depth = this->light[floorIndex]; // y - Config::DISPLAY_HEIGHT / 2;
                 Color color { depth, depth, depth, 255 };
-                color = ColorBrightness(color, this->lightmap[floorIndex]);
+                color = ColorBrightness(color, this->lightmap[floorIndex] - rowDistance * 0.001);
 
                 DrawTexturePro(
                         *textures,
@@ -249,13 +267,11 @@ public:
                 //Check if ray has hit a wall
                 // check hit light
                 if (mapIndex >= 0 && mapIndex < walls.size()) {
-                    if (lightmap[mapIndex] > brightness) brightness = lightmap[mapIndex];
                     if (walls[mapIndex] > 0) {
                         wallTextureId = walls[mapIndex];
                         break;
                     }
                 }
-                brightness -= 0.1; // TODO: Calc lighting correctly
                 rayDepth++;
             }
 
@@ -292,7 +308,7 @@ public:
             // if(drawStart < 0)drawStart = 0;
             int drawEnd = lineHeight / 2 + Config::DISPLAY_HEIGHT / 2;
             // if(drawEnd >= Config::DISPLAY_HEIGHT)drawEnd = Config::DISPLAY_HEIGHT - 1;
-            Color color = ColorBrightness({ wallDepth, wallDepth, wallDepth, 255 }, this->lightmap[mapIndex] + brightness);
+            Color color = ColorBrightness({ wallDepth, wallDepth, wallDepth, 255 }, this->lightmap[mapIndex] + brightness - (perpWallDist * 0.001));
             // if (side == 1) color = GRAY;
 
             // DrawLine(x, drawStart, x, drawEnd, color);
@@ -323,8 +339,12 @@ public:
         }
         if (obj.type == "light") {
             int index = (int)pos.y * map->getWidth() + (int)pos.x;
-            this->lightmap[index] = 1.0f;
+            this->map->setLight(index, 128);
         }
+    }
+
+    float getLightAt(int index) {
+        return this->lightmap[index];
     }
 
     void drawSprites() {

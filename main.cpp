@@ -52,14 +52,16 @@ void renderBackground(Texture2D& background) {
     );
 }
 
-void render(Raycaster& raycaster, Texture2D& background) {
+void render(Player *player, Raycaster& raycaster, Texture2D& background) {
     ClearBackground(BLACK);
     renderBackground(background);
     raycaster.renderFloor();
     raycaster.renderRaycaster();
     raycaster.drawSprites();
 
-    DrawTexture(playerHandTexture, Config::DISPLAY_WIDTH / 2 + playerHandTexture.width / 2, Config::DISPLAY_HEIGHT - playerHandTexture.height, WHITE);
+    auto color = Color { 64, 64, 64, 255 };
+    color = ColorBrightness(color, player->brightness);
+    DrawTexture(playerHandTexture, Config::DISPLAY_WIDTH / 2 + playerHandTexture.width / 2, Config::DISPLAY_HEIGHT - playerHandTexture.height, color);
 }
 
 void renderMinimap(Player &player, vector<int> &tilemap, int mapWidth, Vector2 offset = { WINDOW_WIDTH / 2, 0 }) {
@@ -124,6 +126,8 @@ int main() {
         raycaster.addObject(obj);
     }
 
+    raycaster.assignLightMap();
+
     auto music = LoadMusicStream("assets/music/MyVeryOwnDeadShip.ogg");
 
     auto onUpdate = [&](){
@@ -152,7 +156,7 @@ int main() {
     {
         UpdateMusicStream(music);
         BeginTextureMode(canvas);
-            render(raycaster, background);
+            render(player.get(), raycaster, background);
         EndTextureMode();
 
         BeginDrawing();

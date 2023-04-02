@@ -20,14 +20,19 @@ public:
     Vector2 position;
     Vector2 direction;
     Vector2 plane;
-    shared_ptr<vector<int>> map;
+    Map* map;
+    shared_ptr<vector<int>> walls;
+    shared_ptr<vector<int>> lightmap;
+    float brightness = 0.0f;
 
     bool isMoving { false };
 
     int currentMapWidth, currentMapHeight;
 
     Player(Map* map) {
-        this->map = map->getWalls();
+        this->map = map;
+        this->walls = map->getWalls();
+        this->lightmap = map->getLightmap();
         this->currentMapWidth = map->getWidth();
         this->currentMapHeight = map->getHeight();
         this->rotation = 0.0f;
@@ -58,24 +63,31 @@ public:
         return this->isMoving;
     }
 
+    void onMove() {
+        int index = (int)this->position.y * this->map->getWidth() + (int)this->position.x;
+        this->brightness = (float)this->map->getLightAt(index) / 255;
+    }
+
     void moveForward(float amount = 0.1f, float lookAhead = 0.6f) {
         int px = (int)(this->position.x + this->direction.x * lookAhead);
         int py = (int)(this->position.y + this->direction.y * lookAhead);
         int index = py * this->currentMapHeight + px;
-        if ((*this->map)[index] > 0) return;
+        if ((*this->walls)[index] > 0) return;
 
         this->position.x += this->direction.x * amount;
         this->position.y += this->direction.y * amount;
+        this->onMove();
     }
 
     void moveBackward(float amount = 0.1f, float lookAhead = 0.6f) {
         int px = (int)(this->position.x - this->direction.x * lookAhead);
         int py = (int)(this->position.y - this->direction.y * lookAhead);
         int index = py * this->currentMapWidth + px;
-        if ((*this->map)[index] > 0) return;
+        if ((*this->walls)[index] > 0) return;
 
         this->position.x -= this->direction.x * amount;
         this->position.y -= this->direction.y * amount;
+        this->onMove();
     }
 };
 

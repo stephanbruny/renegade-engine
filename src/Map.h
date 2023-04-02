@@ -9,6 +9,8 @@
 
 using namespace  std;
 
+constexpr double PI_MUL_2 = M_PI * 2;
+
 class Map {
 private:
     vector<int> floorData;
@@ -17,10 +19,12 @@ private:
     vector<int> lightMap;
     int width;
     int height;
+    int globalLight;
 public:
-    Map(int width, int height, unsigned char globalLight = 48) {
+    Map(int width, int height, unsigned char globalLight = 0) {
         this->width = width;
         this->height = height;
+        this->globalLight = globalLight;
 
         size_t map_size = width * height;
 
@@ -99,6 +103,41 @@ public:
         }
         for (int i = 0; i < data.size(); i++) {
             this->lightMap[i] = data[i];
+        }
+    }
+
+    int getLightAt(int index) {
+        return this->lightMap[index];
+    }
+
+    void setLight(int index, int value) {
+        this->lightMap[index] = value;
+        calculateLight(index % this->width, index / this->width);
+    }
+
+    void calculateLight(int x, int y) {
+        int i = y * this->width + x;
+        int light = this->lightMap[i];
+        float step = PI_MUL_2 / 16;
+        float rad = 0;
+        while(rad < PI_MUL_2) {
+            int currentLight = light;
+            int distance = 1;
+            while (currentLight > this->globalLight) {
+                int lx = x + (int)(cos(rad) * distance);
+                int ly = y + (int)(sin(rad) * distance);
+                int index = ly * this->width + lx;
+                if (index < 0 || index > this->lightMap.size()) break;
+                if (this->lightMap[index] > currentLight) break;
+                if (this->wallsData[index] > 0) {
+                    this->lightMap[index] = currentLight / 2;
+                    break;
+                };
+                this->lightMap[index] = currentLight;
+                currentLight -= currentLight / 2;
+                distance++;
+            }
+            rad += step;
         }
     }
 
