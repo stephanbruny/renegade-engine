@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.5" tiledversion="1.7.0" orientation="orthogonal" renderorder="right-down" width="40" height="40" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="49">
+<map version="1.5" tiledversion="1.7.0" orientation="orthogonal" renderorder="right-down" width="40" height="40" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="101">
  <editorsettings>
   <export target="../assets/maps/dungeon/dungeon-1.json" format="json"/>
  </editorsettings>
@@ -97,6 +97,8 @@
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
+50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,51,51,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
+50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,51,51,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
@@ -107,10 +109,8 @@
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
-50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
-50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
-50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
-50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
+50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,51,51,50,50,50,50,50,50,50,
+50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,51,51,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
@@ -125,9 +125,9 @@
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
-50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
-50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
-50,50,50,50,50,50,50,50,50,50,50,51,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
+50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,51,51,51,51,50,50,50,50,50,50,50,50,
+50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,51,51,51,51,50,50,50,50,50,50,50,50,
+50,50,50,50,50,50,50,50,50,50,50,51,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,51,51,51,51,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
 50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,
@@ -318,6 +318,240 @@
    <properties>
     <property name="color" type="color" value="#ffff0c00"/>
    </properties>
+   <point/>
+  </object>
+  <object id="49" name="hook" x="672" y="448">
+   <point/>
+  </object>
+  <object id="50" name="hook" x="576" y="832">
+   <point/>
+  </object>
+  <object id="51" name="hook" x="704" y="960">
+   <point/>
+  </object>
+  <object id="52" name="hook" x="160" y="320">
+   <point/>
+  </object>
+  <object id="53" name="spearhead" x="1024" y="512">
+   <point/>
+  </object>
+  <object id="54" name="spearhead" x="992" y="512">
+   <point/>
+  </object>
+  <object id="55" name="spearhead" x="1056" y="512">
+   <point/>
+  </object>
+  <object id="56" name="hook" x="992" y="472">
+   <point/>
+  </object>
+  <object id="57" name="hook" x="1056" y="544">
+   <point/>
+  </object>
+  <object id="58" name="hook" x="960" y="576">
+   <point/>
+  </object>
+  <object id="59" name="cage" x="960" y="288">
+   <point/>
+  </object>
+  <object id="60" name="cage" x="1120" y="288">
+   <point/>
+  </object>
+  <object id="61" name="light" type="light" x="1008" y="496">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="62" name="candles" type="light" x="992" y="800">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="63" name="candles" type="light" x="1088" y="800">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="64" name="candles" type="light" x="864" y="1200">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="65" name="candles" type="light" x="1040" y="48">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="66" name="light" type="light" x="1040" y="496">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="67" name="light" type="light" x="1008" y="528">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="68" name="light" type="light" x="1040" y="528">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="69" name="candles" type="light" x="992" y="720">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="70" name="candles" type="light" x="1072" y="712">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="71" name="hook" x="928" y="128">
+   <point/>
+  </object>
+  <object id="72" name="hook" x="968" y="96">
+   <point/>
+  </object>
+  <object id="73" name="hook" x="1112" y="160">
+   <point/>
+  </object>
+  <object id="74" name="hook" x="1152" y="112">
+   <point/>
+  </object>
+  <object id="75" name="hook" x="984" y="192">
+   <point/>
+  </object>
+  <object id="76" name="hook" x="1208" y="176">
+   <point/>
+  </object>
+  <object id="77" name="hook" x="912" y="200">
+   <point/>
+  </object>
+  <object id="78" name="cage" x="864" y="128">
+   <point/>
+  </object>
+  <object id="79" name="cage" x="1216" y="64">
+   <point/>
+  </object>
+  <object id="80" name="skull" x="1216" y="128">
+   <point/>
+  </object>
+  <object id="81" name="skull" x="1056" y="64">
+   <point/>
+  </object>
+  <object id="82" name="skull" x="1024" y="64">
+   <point/>
+  </object>
+  <object id="83" name="light" type="light" x="624" y="152">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="84" name="light" type="light" x="656" y="152">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="85" name="light" type="light" x="656" y="112">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="86" name="light" type="light" x="624" y="112">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="87" name="light" type="light" x="912" y="1016">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="88" name="light" type="light" x="944" y="1016">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="89" name="light" type="light" x="976" y="1016">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="90" name="light" type="light" x="1008" y="1016">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="91" name="light" type="light" x="912" y="1040">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="92" name="light" type="light" x="944" y="1040">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="93" name="light" type="light" x="976" y="1040">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="94" name="light" type="light" x="1008" y="1040">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="95" name="light" type="light" x="912" y="1072">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="96" name="light" type="light" x="944" y="1072">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="97" name="light" type="light" x="976" y="1072">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="98" name="light" type="light" x="1008" y="1072">
+   <properties>
+    <property name="color" type="color" value="#ffff0c00"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="99" name="statue" x="1120" y="56">
+   <point/>
+  </object>
+  <object id="100" name="statue" x="960" y="48">
    <point/>
   </object>
  </objectgroup>

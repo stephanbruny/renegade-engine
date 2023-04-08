@@ -78,6 +78,13 @@ public:
         this->assignLightMap();
     }
 
+    ~Raycaster() {
+        for (auto &pair : this->textureMap) {
+            UnloadTexture(pair.second);
+        }
+        this->textureMap.clear();
+    }
+
     void assignLightMap() {
         auto current_lightmap = *(this->map->getLightmap());
         int i = 0;

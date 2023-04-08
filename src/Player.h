@@ -26,6 +26,9 @@ public:
     float brightness = 0.0f;
 
     bool isMoving { false };
+    bool isRunning { false };
+
+    double movingTime = 0.0;
 
     int currentMapWidth, currentMapHeight;
 
@@ -57,6 +60,13 @@ public:
 
     void setIsMoving(bool value) {
         this->isMoving = value;
+        if (value == false) {
+            movingTime = 0;
+        }
+    }
+
+    void setIsRunning(bool value) {
+        this->isRunning = value;
     }
 
     bool getIsMoving() {
@@ -66,6 +76,7 @@ public:
     void onMove() {
         int index = (int)this->position.y * this->map->getWidth() + (int)this->position.x;
         this->brightness = (float)this->map->getLightAt(index) / 255;
+        this->isMoving = true;
     }
 
     void moveForward(float amount = 0.1f, float lookAhead = 0.6f) {
@@ -88,6 +99,12 @@ public:
         this->position.x -= this->direction.x * amount;
         this->position.y -= this->direction.y * amount;
         this->onMove();
+    }
+
+    void onUpdate(double dt) {
+        if (isMoving) {
+            movingTime += dt;
+        }
     }
 };
 
