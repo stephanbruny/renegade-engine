@@ -66,6 +66,7 @@ public:
         auto tex5 = LoadTexture("assets/sprites/skull-1.png");
         auto tex6 = LoadTexture("assets/sprites/hook.png");
         auto tex7 = LoadTexture("assets/sprites/barell.png");
+        auto tex8 = LoadTexture("assets/sprites/mask.png");
 
         textureMap.insert(pair<string, Texture2D>("spearhead", tex));
         textureMap.insert(pair<string, Texture2D>("statue", tex2));
@@ -74,6 +75,7 @@ public:
         textureMap.insert(pair<string, Texture2D>("skull", tex5));
         textureMap.insert(pair<string, Texture2D>("hook", tex6));
         textureMap.insert(pair<string, Texture2D>("barell", tex7));
+        textureMap.insert(pair<string, Texture2D>("mask", tex8));
 
         this->assignLightMap();
     }
