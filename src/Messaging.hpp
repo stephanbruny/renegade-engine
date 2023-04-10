@@ -6,6 +6,7 @@
 #define RENEGADE_ENGINE_MESSAGING_HPP
 
 #include <string>
+#include <utility>
 #include <vector>
 #include <map>
 
@@ -21,7 +22,7 @@ namespace Messaging {
     struct Actor {
         string id;
 
-        Actor(string id) : id(id) {};
+        explicit Actor(string id) : id(std::move(id)) {};
 
         virtual void onMessage(Message<shared_ptr<Actor>> message) {}
     };
@@ -46,8 +47,8 @@ namespace Messaging {
 
         void publish(string topic, shared_ptr<TActor> sender) {
             queue.push_back({
-                                    topic, sender
-                            });
+                topic, sender
+            });
         }
 
         void flush() {

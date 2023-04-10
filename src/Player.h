@@ -17,9 +17,10 @@ constexpr float MAX_ROTATION = 360.0f;
 class Player {
 public:
     float rotation;
-    Vector2 position;
-    Vector2 direction;
-    Vector2 plane;
+    Vector2 position{};
+    Vector2 direction{};
+    Vector2 plane{};
+    int tile_x, tile_y;
     Map* map;
     shared_ptr<vector<int>> walls;
     shared_ptr<vector<int>> lightmap;
@@ -32,7 +33,7 @@ public:
 
     int currentMapWidth, currentMapHeight;
 
-    Player(Map* map) {
+    explicit Player(Map* map) {
         this->map = map;
         this->walls = map->getWalls();
         this->lightmap = map->getLightmap();
@@ -60,7 +61,7 @@ public:
 
     void setIsMoving(bool value) {
         this->isMoving = value;
-        if (value == false) {
+        if (!value) {
             movingTime = 0;
         }
     }
@@ -77,6 +78,9 @@ public:
         int index = (int)this->position.y * this->map->getWidth() + (int)this->position.x;
         this->brightness = (float)this->map->getLightAt(index) / 255;
         this->isMoving = true;
+
+        tile_x = (int)this->position.x;
+        tile_y = (int)this->position.y;
     }
 
     void moveForward(float amount = 0.1f, float lookAhead = 0.6f) {

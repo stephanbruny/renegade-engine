@@ -554,8 +554,5 @@
   <object id="100" name="statue" x="960" y="48">
    <point/>
   </object>
-  <object id="101" name="mask" x="416" y="640">
-   <point/>
-  </object>
  </objectgroup>
 </map>

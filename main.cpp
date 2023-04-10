@@ -10,6 +10,11 @@
 #include "src/Raycaster.h"
 #include "src/Level.h"
 #include "src/Textures.h"
+#include "src/Entities.h"
+
+#include <cmath>
+
+#include "lib/AStar/AStar.hpp"
 
 #include "src/TestMap.h"
 
@@ -21,6 +26,76 @@ constexpr int WINDOW_HEIGHT = 800;
 constexpr int MAP_WIDTH = 30;
 constexpr int CELL_SIZE = 8;
 constexpr float PI_DIV2 = M_PI / 2;
+
+AStar::Generator pathGenerator;
+
+class Mask : public Entity {
+private:
+    unique_ptr<Player>& player;
+    vector<AStar::Vec2i> path;
+    Vector2 currentTarget { 0, 0 };
+    AStar::Vec2i lastPlayerPosition { 0, 0 };
+    int pathIndex { 0 };
+    double checkPositionTimer = 5.0;
+    float speed = 1.0f;
+    bool sleep = false;
+public:
+    explicit Mask(unique_ptr<Player> &player) : player(player) {}
+
+    void calculatePath() {
+        lastPlayerPosition = { (int)player->position.x, (int)player->position.y };
+        AStar::Vec2i source = { (int)this->position.x, (int)this->position.y };
+        path = pathGenerator.findPath(
+            { (int)this->position.x, (int)this->position.y },
+            lastPlayerPosition
+        );
+        if (path.size() <= 1) {
+            sleep = true;
+            return;
+        }
+        reverse(path.begin(), path.end());
+        pathIndex = 0;
+        currentTarget = Vector2 {
+                (float)path[pathIndex].x + 0.5f,
+                (float)path[pathIndex].y + 0.5f
+        };
+    }
+
+    void nextTarget(int index) {
+        currentTarget = Vector2 {
+                (float)path[index].x + 0.5f,
+                (float)path[index].y + 0.5f
+        };
+    }
+
+    float lerp(float a, float b, float f) {
+        return a * (1.0 - f) + (b * f);
+    }
+
+    void update(double dt) override {
+        if (sleep) return;
+        checkPositionTimer -= dt;
+        if (checkPositionTimer <= 0) {
+            this->path.clear();
+            checkPositionTimer = 10.0;
+        }
+        if (this->path.empty()) calculatePath();
+        this->position = {
+                lerp(this->position.x, (float)currentTarget.x, (float)dt * speed),
+                lerp(this->position.y, (float)currentTarget.y, (float)dt * speed),
+        };
+        float px, py, tx, ty;
+        px = position.x;
+        py = position.y;
+        tx = currentTarget.x;
+        ty = currentTarget.y;
+        if (std::abs(px-tx)<0.1 && std::abs(py-ty)<0.1) {
+            this->pathIndex++;
+            if (pathIndex > path.size()) return;
+            nextTarget(pathIndex);
+        }
+    }
+};
 
 void update(double dt, Player* player) {
     bool isRunning = IsKeyDown(KEY_LEFT_SHIFT);
@@ -91,11 +166,14 @@ int main() {
     textures.add("assets/hand.png", "hand");
     textures.add("assets/textures.png", "textures");
     textures.add("assets/backdrop.png", "background");
+    textures.add("assets/sprites/mask.png", "mask");
 
     SetTargetFPS(60);
 
     auto level = Level("assets/maps/dungeon/dungeon-1.json");
     auto level_size = level.getSize();
+
+    pathGenerator.setWorldSize({ level_size.x, level_size.y });
 
     auto map = make_unique<Map>(level_size.x, level_size.y);
     auto wallsLayerData = level.getLayerData("walls");
@@ -106,6 +184,15 @@ int main() {
     map->setFloor(floorLayerData);
     map->setCeiling(ceilingLayerData);
     map->autoLightMap();
+
+    pathGenerator.setDiagonalMovement(true);
+    for (int i = 0; i < wallsLayerData.size(); i++) {
+        if (wallsLayerData[i] > 0) {
+            int x = i % level_size.x;
+            int y = i / level_size.x;
+            pathGenerator.addCollision({ x, y });
+        }
+    }
 
     auto player = make_unique<Player>(map.get());
     player->position = { 20, 20 };
@@ -124,6 +211,14 @@ int main() {
 
     auto music = LoadMusicStream("assets/music/MyVeryOwnDeadShip.ogg");
 
+    Entities entities;
+    auto maskTexture = textures.get("mask");
+    auto maskSpriteId = raycaster.addSprite(Sprite({0, 0}, *maskTexture));
+    Mask mask(player);
+    mask.setPosition({ 14.5f, 20.5f });
+    mask.setSpriteId(maskSpriteId);
+    entities.add(mask);
+
     auto onUpdate = [&](){
         while (isGameRunning) {
             double now = GetTime();
@@ -134,7 +229,10 @@ int main() {
                 std::this_thread::sleep_for(delay);
             }
             currentTime = now;
+            entities.update(deltaTime, raycaster);
             update(deltaTime, player.get());
+            mask.update(deltaTime);
+            raycaster.setSpritePosition(mask.spriteId, mask.position);
         }
         std::cout << "Update thread finished\n";
         isUpdateFinished = true;
@@ -146,6 +244,8 @@ int main() {
     music.looping = true;
     PlayMusicStream(music);
 
+    char* txt;
+
     while (!WindowShouldClose())
     {
         UpdateMusicStream(music);
@@ -156,6 +256,9 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
             DrawTexturePro(canvas.texture, canvasSource, canvasDest, Vector2 { 0, 0 }, 0, WHITE );
+            DrawFPS(4, 4);
+            DrawText(TextFormat("P: %i:%i", player->tile_x, player->tile_y), 4, 24, 12, WHITE);
+        DrawText(TextFormat("M: %f:%f", mask.position.x, mask.position.y), 4, 38, 12, WHITE);
         EndDrawing();
     }
 

@@ -15,13 +15,13 @@
 #include "Level.h"
 
 struct Sprite {
+    int id { 0 };
     Vector2 position { 0, 0 };
     Texture2D texture;
     float distance { 0.0f };
 
-    Sprite(Vector2 pos, Texture2D &tex) {
+    Sprite(Vector2 pos, Texture2D &tex): texture(tex) {
         position = pos;
-        texture = tex;
     }
 };
 
@@ -39,9 +39,11 @@ private:
 
     std::map<string, Texture2D> textureMap;
 
-    vector<Sprite> sprites;
+    vector<Sprite> static_sprites;
 
     vector<double> zBuffer;
+
+    int lastSpriteId { 0 };
 
 public:
 
@@ -67,6 +69,8 @@ public:
         auto tex6 = LoadTexture("assets/sprites/hook.png");
         auto tex7 = LoadTexture("assets/sprites/barell.png");
         auto tex8 = LoadTexture("assets/sprites/mask.png");
+        auto tex9 = LoadTexture("assets/sprites/tree-1.png");
+        auto tex10 = LoadTexture("assets/sprites/tree-2.png");
 
         textureMap.insert(pair<string, Texture2D>("spearhead", tex));
         textureMap.insert(pair<string, Texture2D>("statue", tex2));
@@ -76,6 +80,8 @@ public:
         textureMap.insert(pair<string, Texture2D>("hook", tex6));
         textureMap.insert(pair<string, Texture2D>("barell", tex7));
         textureMap.insert(pair<string, Texture2D>("mask", tex8));
+        textureMap.insert(pair<string, Texture2D>("tree-1", tex9));
+        textureMap.insert(pair<string, Texture2D>("tree-2", tex10));
 
         this->assignLightMap();
     }
@@ -207,14 +213,6 @@ public:
 
     void renderRaycaster() {
         int mapWidth = this->map->getWidth();
-        for (auto &sprite : sprites) {
-            sprite.distance =
-                    ((player->position.x - sprite.position.x) * (player->position.x - sprite.position.x)
-                    + (player->position.y - sprite.position.y) * (player->position.y - sprite.position.y));
-        }
-        sort(sprites.begin(), sprites.end(), [&](auto a, auto b){
-            return a.distance > b.distance;
-        });
         float brightness = 0.0f;
         for (int x = 0; x < Config::DISPLAY_WIDTH; x++) {
             double cameraX = 2 * x / double(Config::DISPLAY_WIDTH) - 1; //x-coordinate in camera space
@@ -337,18 +335,35 @@ public:
         }
     }
 
-    void addObject(GameObject &obj) {
+    int addSprite(Sprite sprite) {
+        sprite.id = lastSpriteId;
+        this->static_sprites.emplace_back(sprite);
+        return lastSpriteId++;
+    }
+
+    int addObject(GameObject &obj) {
+        int spriteId = -1;
         auto tex = textureMap.find(obj.name);
         Vector2 pos = {
                 obj.position.x / Config::TEXTURE_SIZE,
                 obj.position.y / Config::TEXTURE_SIZE
         };
         if (tex != textureMap.end()) {
-            this->sprites.emplace_back(pos, tex->second);
+            spriteId = this->addSprite(Sprite(pos, tex->second));
         }
         if (obj.type == "light") {
             int index = (int)pos.y * map->getWidth() + (int)pos.x;
             this->map->setLight(index, 128);
+        }
+        return spriteId;
+    }
+
+    void setSpritePosition(int id, Vector2 pos) {
+        auto match = find_if(static_sprites.begin(), static_sprites.end(), [&](Sprite &sp){
+            return sp.id == id;
+        });
+        if (match != static_sprites.end()) {
+            match->position = pos;
         }
     }
 
@@ -357,6 +372,18 @@ public:
     }
 
     void drawSprites() {
+        this->drawSprites(static_sprites);
+    }
+
+    void drawSprites(vector<Sprite> &sprites) {
+        for (auto &sprite : sprites) {
+            sprite.distance =
+                    ((player->position.x - sprite.position.x) * (player->position.x - sprite.position.x)
+                     + (player->position.y - sprite.position.y) * (player->position.y - sprite.position.y));
+        }
+        sort(sprites.begin(), sprites.end(), [&](auto a, auto b){
+            return a.distance > b.distance;
+        });
         for(int i = 0; i < sprites.size(); i++) {
             //translate sprite position to relative to camera
             double spriteX = sprites[i].position.x - player->position.x;
