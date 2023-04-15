@@ -42,6 +42,14 @@ private:
 public:
     explicit Mask(unique_ptr<Player> &player) : player(player) {}
 
+    void reset() {
+        int x = GetRandomValue(0, 40);
+        int y = GetRandomValue(0, 40);
+        this->position.x = (float)x;
+        this->position.y = (float)y;
+        this->calculatePath();
+    }
+
     void calculatePath() {
         lastPlayerPosition = { (int)player->position.x, (int)player->position.y };
         AStar::Vec2i source = { (int)this->position.x, (int)this->position.y };
@@ -50,7 +58,7 @@ public:
             lastPlayerPosition
         );
         if (path.size() <= 1) {
-            sleep = true;
+            this->reset();
             return;
         }
         reverse(path.begin(), path.end());

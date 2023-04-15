@@ -57,7 +57,7 @@ public:
         this->light    = *(map->getLightmap());
 
         this->lightmap = vector<float>(this->walls.size());
-        std::fill(this->lightmap.begin(), this->lightmap.end(), 0.0f);
+        std::fill(this->lightmap.begin(), this->lightmap.end(), 0.1f);
 
         this->zBuffer = vector<double>(Config::DISPLAY_WIDTH);
 
@@ -440,6 +440,7 @@ public:
 
                         Color color { (unsigned char)depth, (unsigned char)depth, (unsigned char)depth, 255 };
                         int mapIndex = (int)sprites[i].position.y * this->map->getWidth() + (int)sprites[i].position.x;
+                        if (mapIndex < 0 || mapIndex > this->walls.size()) continue;
                         color = ColorBrightness(color, this->lightmap[mapIndex]);
 
                         DrawTexturePro(
