@@ -34,6 +34,10 @@ public:
         texture_map.erase(name);
     }
 
+    bool exists(string name) {
+        return texture_map.count(name);
+    }
+
     ~Textures() {
         for (auto &pair : texture_map) {
             auto texture = pair.second;

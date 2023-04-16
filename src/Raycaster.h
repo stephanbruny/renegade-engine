@@ -13,6 +13,7 @@
 #include "Player.h"
 #include "Map.h"
 #include "Level.h"
+#include "Textures.h"
 
 struct Sprite {
     int id { 0 };
@@ -35,21 +36,23 @@ private:
 
     Player* player;
     Map* map;
-    shared_ptr<Texture2D> textures;
-
-    std::map<string, Texture2D> textureMap;
+    unique_ptr<Textures>& textures;
+    shared_ptr<Texture2D> atlasTexture;
 
     vector<Sprite> static_sprites;
 
     vector<double> zBuffer;
 
+    double global_illumination = 0.001;
+
     int lastSpriteId { 0 };
 
 public:
 
-    Raycaster(Map *map, Player *player, shared_ptr<Texture2D> textures) {
+    Raycaster(Map *map, Player *player, unique_ptr<Textures>& textureMapper):
+        textures(textureMapper)
+        {
         this->player = player;
-        this->textures = textures;
         this->map = map;
         this->floor    = *(map->getFloor());
         this->walls    = *(map->getWalls());
@@ -61,36 +64,11 @@ public:
 
         this->zBuffer = vector<double>(Config::DISPLAY_WIDTH);
 
-        auto tex = LoadTexture("assets/sprites/spear-head.png");
-        auto tex2 = LoadTexture("assets/sprites/statue-1.png");
-        auto tex3 = LoadTexture("assets/sprites/candles.png");
-        auto tex4 = LoadTexture("assets/sprites/cage.png");
-        auto tex5 = LoadTexture("assets/sprites/skull-1.png");
-        auto tex6 = LoadTexture("assets/sprites/hook.png");
-        auto tex7 = LoadTexture("assets/sprites/barell.png");
-        auto tex8 = LoadTexture("assets/sprites/mask.png");
-        auto tex9 = LoadTexture("assets/sprites/tree-1.png");
-        auto tex10 = LoadTexture("assets/sprites/tree-2.png");
-
-        textureMap.insert(pair<string, Texture2D>("spearhead", tex));
-        textureMap.insert(pair<string, Texture2D>("statue", tex2));
-        textureMap.insert(pair<string, Texture2D>("candles", tex3));
-        textureMap.insert(pair<string, Texture2D>("cage", tex4));
-        textureMap.insert(pair<string, Texture2D>("skull", tex5));
-        textureMap.insert(pair<string, Texture2D>("hook", tex6));
-        textureMap.insert(pair<string, Texture2D>("barell", tex7));
-        textureMap.insert(pair<string, Texture2D>("mask", tex8));
-        textureMap.insert(pair<string, Texture2D>("tree-1", tex9));
-        textureMap.insert(pair<string, Texture2D>("tree-2", tex10));
-
         this->assignLightMap();
     }
 
-    ~Raycaster() {
-        for (auto &pair : this->textureMap) {
-            UnloadTexture(pair.second);
-        }
-        this->textureMap.clear();
+    void setAtlas(const string & name) {
+        this->atlasTexture = textures->get(name);
     }
 
     void assignLightMap() {
@@ -157,7 +135,7 @@ public:
                 int ceilingTextureId = this->ceiling[floorIndex];
                 if (textureId <= 0) continue;
 
-                int atlasWidth = textures->width / Config::TEXTURE_SIZE;
+                int atlasWidth = atlasTexture->width / Config::TEXTURE_SIZE;
                 int textureIdX = textureId % atlasWidth;
                 int textureIdY = textureId / atlasWidth;
                 float textureX = textureIdX * Config::TEXTURE_SIZE + tx;
@@ -170,10 +148,10 @@ public:
 
                 unsigned char depth = this->light[floorIndex]; // y - Config::DISPLAY_HEIGHT / 2;
                 Color color { depth, depth, depth, 255 };
-                color = ColorBrightness(color, this->lightmap[floorIndex] - rowDistance * 0.001);
+                color = ColorBrightness(color, this->lightmap[floorIndex] / rowDistance + global_illumination);
 
                 DrawTexturePro(
-                        *textures,
+                        *atlasTexture,
                         Rectangle { textureX, textureY, 1, 1 },
                         Rectangle { (float)x, (float)y, 1, 1 },
                         Vector2 { 0, 0 },
@@ -183,7 +161,7 @@ public:
 
                 if (ceilingTextureId <= 0) continue;
                 DrawTexturePro(
-                        *textures,
+                        *atlasTexture,
                         Rectangle { ceilingTexturePos.x, ceilingTexturePos.y, 1, 1 },
                         Rectangle { (float)x, (float)Config::DISPLAY_HEIGHT - y, 1, 1 },
                         Vector2 { 0, 0 },
@@ -213,7 +191,7 @@ public:
 
     void renderRaycaster() {
         int mapWidth = this->map->getWidth();
-        float brightness = 0.0f;
+        float brightness = 0.5f;
         for (int x = 0; x < Config::DISPLAY_WIDTH; x++) {
             double cameraX = 2 * x / double(Config::DISPLAY_WIDTH) - 1; //x-coordinate in camera space
             double rayDirX = this->player->direction.x + this->player->plane.x * cameraX;
@@ -315,17 +293,17 @@ public:
             // if(drawStart < 0)drawStart = 0;
             int drawEnd = lineHeight / 2 + Config::DISPLAY_HEIGHT / 2;
             // if(drawEnd >= Config::DISPLAY_HEIGHT)drawEnd = Config::DISPLAY_HEIGHT - 1;
-            Color color = ColorBrightness({ wallDepth, wallDepth, wallDepth, 255 }, this->lightmap[mapIndex] + brightness - (perpWallDist * 0.001));
+            Color color = ColorBrightness({ wallDepth, wallDepth, wallDepth, 255 }, this->lightmap[mapIndex] + global_illumination / (perpWallDist));
             // if (side == 1) color = GRAY;
 
             // DrawLine(x, drawStart, x, drawEnd, color);
-            int atlasWidth = textures->width / Config::TEXTURE_SIZE;
+            int atlasWidth = atlasTexture->width / Config::TEXTURE_SIZE;
             int textureIdX = wallTextureId % atlasWidth;
             int textureIdY = wallTextureId / atlasWidth;
             float textureX = textureIdX * Config::TEXTURE_SIZE + texX;
             float textureY = textureIdY * Config::TEXTURE_SIZE;
             DrawTexturePro(
-                    *textures,
+                    *atlasTexture,
                     Rectangle { textureX, textureY, 1, Config::TEXTURE_SIZE },
                     Rectangle { (float)x, (float)drawStart, 1, float(drawEnd - drawStart) },
                     Vector2 { 0, 0 },
@@ -343,17 +321,19 @@ public:
 
     int addObject(GameObject &obj) {
         int spriteId = -1;
-        auto tex = textureMap.find(obj.name);
+
         Vector2 pos = {
                 obj.position.x / Config::TEXTURE_SIZE,
                 obj.position.y / Config::TEXTURE_SIZE
         };
-        if (tex != textureMap.end()) {
-            spriteId = this->addSprite(Sprite(pos, tex->second));
-        }
         if (obj.type == "light") {
             int index = (int)pos.y * map->getWidth() + (int)pos.x;
             this->map->setLight(index, 128);
+        }
+        if (textures->exists(obj.name)) {
+            auto tex = textures->get(obj.name);
+            auto sprite = Sprite(pos, *tex);
+            spriteId = this->addSprite(sprite);
         }
         return spriteId;
     }
