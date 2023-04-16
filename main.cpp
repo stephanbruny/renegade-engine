@@ -88,7 +88,7 @@ int main() {
 
     SetTargetFPS(60);
 
-    auto level = Level("assets/maps/dungeon/dungeon-1.json");
+    auto level = Level("assets/maps/dungeon/fantasy-dungeon.json");
     auto level_size = level.getSize();
 
     auto pathGenerator = make_unique<AStar::Generator>();
@@ -123,7 +123,7 @@ int main() {
     Rectangle canvasDest = { 0, 0, Config::WINDOW_WIDTH, Config::WINDOW_HEIGHT };
 
     Raycaster raycaster(map.get(), player.get(), textures);
-    raycaster.setAtlas("textures");
+    raycaster.setAtlas("dungeon");
 
     for (auto &obj : gameObjects) {
         raycaster.addObject(obj);

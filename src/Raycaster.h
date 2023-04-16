@@ -43,7 +43,7 @@ private:
 
     vector<double> zBuffer;
 
-    double global_illumination = 0.001;
+    double global_illumination = 0.1;
 
     int lastSpriteId { 0 };
 
