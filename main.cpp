@@ -115,7 +115,7 @@ int main() {
     }
 
     auto player = make_unique<Player>(map.get());
-    player->position = { 20, 20 };
+    player->position = { 20.5, 20.5 };
     player->rotation = 180;
 
     RenderTexture2D canvas = LoadRenderTexture(Config::DISPLAY_WIDTH, Config::DISPLAY_HEIGHT);
