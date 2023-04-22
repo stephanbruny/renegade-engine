@@ -302,6 +302,7 @@ public:
             int textureIdY = wallTextureId / atlasWidth;
             float textureX = textureIdX * Config::TEXTURE_SIZE + texX;
             float textureY = textureIdY * Config::TEXTURE_SIZE;
+
             DrawTexturePro(
                     *atlasTexture,
                     Rectangle { textureX, textureY, 1, Config::TEXTURE_SIZE },

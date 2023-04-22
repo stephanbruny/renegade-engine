@@ -39,6 +39,10 @@ namespace Config {
             { "assets/sprites/mask.png", "mask" },
             { "assets/sprites/tree-1.png", "tree-1" },
             { "assets/sprites/tree-2.png", "tree-2" },
+            { "assets/sprites/bed.png", "bed" },
+            { "assets/sprites/stool.png", "stool" },
+            { "assets/sprites/infusion.png", "infusion" },
+            { "assets/sprites/infusion2.png", "infusion-2" },
     };
 
     struct vec2i {
