@@ -43,6 +43,7 @@ namespace Config {
             { "assets/sprites/stool.png", "stool" },
             { "assets/sprites/infusion.png", "infusion" },
             { "assets/sprites/infusion2.png", "infusion-2" },
+            { "assets/sprites/wheelchair.png", "wheelchair" },
     };
 
     struct vec2i {

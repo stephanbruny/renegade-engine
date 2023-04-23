@@ -14,6 +14,7 @@
 #include "Map.h"
 #include "Level.h"
 #include "Textures.h"
+#include "Process.h"
 
 struct Sprite {
     int id { 0 };
@@ -23,6 +24,27 @@ struct Sprite {
 
     Sprite(Vector2 pos, Texture2D &tex): texture(tex) {
         position = pos;
+    }
+};
+
+class FlickerProcess : public Process {
+private:
+    int index;
+    double timer;
+    function<void(int, float)> setLightmapCallback;
+public:
+    explicit FlickerProcess(int idx, function<void(int, float)> cb) : index(idx), setLightmapCallback(cb) {
+        timer = GetRandomValue(1, 10) / 10;
+    }
+
+    void update(double dt) override {
+        timer -= dt;
+        if (timer < 0) {
+            int light = GetRandomValue(-128, 128);
+            float lightmapValue = light / 128.0f;
+            setLightmapCallback(this->index, lightmapValue);
+            timer = GetRandomValue(7, 33) / 33;
+        }
     }
 };
 
@@ -40,6 +62,8 @@ private:
     shared_ptr<Texture2D> atlasTexture;
 
     vector<Sprite> static_sprites;
+
+    vector<unique_ptr<Process>> process_list;
 
     vector<double> zBuffer;
 
@@ -320,6 +344,19 @@ public:
         return lastSpriteId++;
     }
 
+    void addFlickerLight(const int index) {
+        cout << "addFlickerLight: " << to_string(index) << endl;
+        FlickerProcess flicker(index, [this](int i, float v){
+            this->setLightMap(i, v);
+        });
+        this->process_list.emplace_back(make_unique<FlickerProcess>(flicker));
+    }
+
+    void setLightMap(int index, float value) {
+        this->lightmap[index] = value;
+        this->map->setLight(index, value * 128);
+    }
+
     int addObject(GameObject &obj) {
         int spriteId = -1;
 
@@ -330,6 +367,10 @@ public:
         if (obj.type == "light") {
             int index = (int)pos.y * map->getWidth() + (int)pos.x;
             this->map->setLight(index, 128);
+        }
+        if (obj.type == "light-flicker") {
+            int index = (int)pos.y * map->getWidth() + (int)pos.x;
+            addFlickerLight(index);
         }
         if (textures->exists(obj.name)) {
             auto tex = textures->get(obj.name);
@@ -354,6 +395,12 @@ public:
 
     void drawSprites() {
         this->drawSprites(static_sprites);
+    }
+
+    void update(double dt) {
+        for (auto & proc : process_list) {
+            proc->update(dt);
+        }
     }
 
     void drawSprites(vector<Sprite> &sprites) {

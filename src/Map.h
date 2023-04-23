@@ -6,6 +6,7 @@
 #define RENEGADE_ENGINE_MAP_H
 
 #include <vector>
+#include "Math.h"
 
 using namespace  std;
 
@@ -111,30 +112,40 @@ public:
     }
 
     void setLight(int index, int value) {
+        if (index < 0 || index > this->lightMap.size()) {
+            cout << "WARNING: light index invalid - " << to_string(index) << endl;
+            return;
+        }
         this->lightMap[index] = value;
-        calculateLight(index % this->width, index / this->width);
+        calculateLight(index % this->width, index / this->width, value / 128);
     }
 
-    void calculateLight(int x, int y) {
+    void calculateLight(int x, int y, float value) {
         int i = y * this->width + x;
-        int light = this->lightMap[i];
+        float light = value;
         float step = PI_MUL_2 / 16;
         float rad = 0;
+        float targetValue = 128 / this->globalLight;
         while(rad < PI_MUL_2) {
-            int currentLight = light;
+            int currentLight = light * 128;
             int distance = 1;
             while (currentLight > this->globalLight) {
                 int lx = x + (int)(cos(rad) * distance);
                 int ly = y + (int)(sin(rad) * distance);
                 int index = ly * this->width + lx;
                 if (index < 0 || index > this->lightMap.size()) break;
-                if (this->lightMap[index] > currentLight) break;
+                if (this->lightMap[index] != this->globalLight && this->lightMap[index] != currentLight) {
+                    this->lightMap[index] += currentLight;
+                    light = Math::lerp(light, targetValue, 0.2);
+                    distance++;
+                    continue;
+                }
                 if (this->wallsData[index] > 0) {
                     this->lightMap[index] = currentLight / 2;
                     break;
                 };
                 this->lightMap[index] = currentLight;
-                currentLight -= currentLight / 2;
+                light = Math::lerp(light, targetValue, 0.2);
                 distance++;
             }
             rad += step;
