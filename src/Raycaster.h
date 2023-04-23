@@ -48,6 +48,14 @@ public:
     }
 };
 
+struct LightSource {
+    int x;
+    int y;
+    int map_index;
+    float light;
+    Color color;
+};
+
 class Raycaster {
 private:
     vector<int> floor;

@@ -155,6 +155,7 @@ int main() {
             update(deltaTime, player.get());
             mask.update(deltaTime);
             raycaster.setSpritePosition(mask.spriteId, mask.position);
+            raycaster.update(deltaTime);
         }
         std::cout << "Update thread finished\n";
         isUpdateFinished = true;
